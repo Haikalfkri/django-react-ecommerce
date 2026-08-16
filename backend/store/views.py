@@ -39,7 +39,7 @@ def add_to_cart(request):
     if not created:
         item.quantity += 1
         item.save()
-    return Response({'message': 'Product added to cart', "cart": CartSerializer(cart).data})
+    return Response({'message': 'Product added to cart',"cart":CartSerializer(cart).data})
 
 @api_view(['POST'])
 def remove_from_cart(request):
