@@ -2,13 +2,8 @@ import { useCart } from "../context/CartContext";
 import { Link } from "react-router-dom";
 
 function CartPage() {
-    const { cartItems, removeFromCart, updateQuantity } = useCart();
+    const { cartItems, total, removeFromCart, updateQuantity } = useCart();
     console.log("Cart Items:", cartItems);
-
-    const total = cartItems.reduce(
-        (acc, item) => acc + item.price * item.quantity,
-        0
-    );
 
     return (
         <div className="pt-20 min-h-screen bg-gray-100 p-8">
