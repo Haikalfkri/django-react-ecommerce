@@ -1,21 +1,19 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, createRef } from "react";
+import { authFetch, getAccessToken } from "../utils/auth";
 
 const CartContext = createContext();
 
-export const CartProvider = ({children}) => {
-    const BASEURL = import.meta.env.VITE_DJANGO_BASE_URL
+export const CartProvider = ({ children }) => {
+    const BASEURL = import.meta.env.VITE_DJANGO_BASE_URL;
     const [cartItems, setCartItems] = useState([]);
     const [total, setTotal] = useState(0);
 
-    // Fetch cart
+    //Fetch Cart form BE
     const fetchCart = async () => {
         try {
-            const res = await fetch(`${BASEURL}/api/cart/`);
-            if (!res.ok) {
-                throw new Error("Failed to fetch cart");
-            }
+            const res = await authFetch(`${BASEURL}/api/cart/`)
             const data = await res.json();
-            setCartItems(data.item || []);
+            setCartItems(data.items || []);
             setTotal(data.total || 0);
         } catch (error) {
             console.error("Error fetching cart:", error);
@@ -26,31 +24,31 @@ export const CartProvider = ({children}) => {
         fetchCart();
     }, []);
 
-    // Add product to cart
+    //Add Product to Cart
     const addToCart = async (productId) => {
-        try {
-            await fetch(`${BASEURL}/api/cart/add/`, {
-                method: 'POST',
+        try{
+            await authFetch(`${BASEURL}/api/cart/add/`, {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({product_id: productId}),
+                body: JSON.stringify({ product_id: productId }),
             });
             fetchCart();
         } catch (error) {
-            console.error("Error adding to cart:", error)
+            console.error("Error adding to cart:", error);
         }
     }
 
-    // Remove product from cart
+    //Remove Product from Cart
     const removeFromCart = async (itemId) => {
-        try {
-            await fetch(`${BASEURL}/api/cart/remove/`, {
-                method: 'POST',
+        try{
+            await authFetch(`${BASEURL}/api/cart/remove/`, {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({item_id: itemId}),
+                body: JSON.stringify({ item_id: itemId }),
             });
             fetchCart();
         } catch (error) {
@@ -58,26 +56,25 @@ export const CartProvider = ({children}) => {
         }
     }
 
-    // Update quantity
+    //Update Quantity
     const updateQuantity = async (itemId, quantity) => {
-        if (quantity < 1) {
+        if (quantity < 1){
             await removeFromCart(itemId);
-            return
+            return;
         }
-
-        try {
-            await fetch(`${BASEURL}/api/cart/update`, {
-                method: 'POST',
+        try{
+            await authFetch(`${BASEURL}/api/cart/update/`, {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({item_id: itemId, quantity}),
+                body: JSON.stringify({ item_id: itemId, quantity }),
             });
-            fetch();
+            fetchCart();
         } catch (error) {
-            console.error("Error updating quantity", error);
+            console.error("Error updating quantity:", error);
         }
-    };
+    }
 
     const clearCart = () => {
         setCartItems([]);
@@ -86,11 +83,10 @@ export const CartProvider = ({children}) => {
 
     return (
         <CartContext.Provider
-            value={{ cartItems, total, addToCart, removeFromCart, updateQuantity, clearCart }}
-        >
+        value={{ cartItems,total, addToCart, removeFromCart, updateQuantity, clearCart }}>
             {children}
         </CartContext.Provider>
     );
-}
+};
 
 export const useCart = () => useContext(CartContext);
